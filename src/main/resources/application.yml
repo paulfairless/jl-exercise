@@ -1,0 +1,8 @@
+micronaut:
+  application:
+    name: price-reduction
+jlapi:
+  url: <base endpoint url>
+  category: <category>
+  key: <key>
+  apiversion: v1

@@ -1,0 +1,5 @@
+profile: service
+defaultPackage: jl.exercise
+---
+testFramework: junit
+sourceLanguage: java
