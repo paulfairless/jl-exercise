@@ -1,6 +1,9 @@
 micronaut:
   application:
     name: price-reduction
+  http:
+    client:
+      read-timeout: 60s
 jlapi:
   url: <base endpoint url>
   category: <category>
