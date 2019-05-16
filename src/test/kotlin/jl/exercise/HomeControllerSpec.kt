@@ -50,14 +50,15 @@ class HomeControllerSpec : Spek({
                             parameterWithName("labelType").optional().description("Formatting of price label")
                         ),
                         responseFields(
-                            fieldWithPath("[].productId").type(JsonFieldType.STRING).description("ProductId"),
-                            fieldWithPath("[].title").type(JsonFieldType.STRING).description("Product title"),
-                            fieldWithPath("[].colorSwatches").type(JsonFieldType.ARRAY).description("Colour swatches"),
-                            fieldWithPath("[].colorSwatches[].color").type(JsonFieldType.STRING).description("color"),
-                            fieldWithPath("[].colorSwatches[].rgbColor").type(JsonFieldType.STRING).description("RGB representation of color"),
-                            fieldWithPath("[].colorSwatches[].skuid").type(JsonFieldType.STRING).description("sku"),
-                            fieldWithPath("[].nowPrice").type(JsonFieldType.STRING).description("Formatted now price"),
-                            fieldWithPath("[].priceLabel").type(JsonFieldType.STRING).description("Formatted price label")
+                            fieldWithPath("products").type(JsonFieldType.ARRAY).description("Array of products"),
+                            fieldWithPath("products[].productId").type(JsonFieldType.STRING).description("ProductId"),
+                            fieldWithPath("products[].title").type(JsonFieldType.STRING).description("Product title"),
+                            fieldWithPath("products[].colorSwatches").type(JsonFieldType.ARRAY).description("Colour swatches"),
+                            fieldWithPath("products[].colorSwatches[].color").type(JsonFieldType.STRING).description("color"),
+                            fieldWithPath("products[].colorSwatches[].rgbColor").type(JsonFieldType.STRING).description("RGB representation of color"),
+                            fieldWithPath("products[].colorSwatches[].skuid").type(JsonFieldType.STRING).description("sku"),
+                            fieldWithPath("products[].nowPrice").type(JsonFieldType.STRING).description("Formatted now price"),
+                            fieldWithPath("products[].priceLabel").type(JsonFieldType.STRING).description("Formatted price label")
                         )
                     )
                 )
@@ -66,10 +67,11 @@ class HomeControllerSpec : Spek({
                 .assertThat().statusCode(200)
                 .extract().response().asString()
 
-        val results: List<JsonNode> = mapper.readValue(response, object : TypeReference<List<JsonNode>>() {})
+        val result: JsonNode = mapper.readValue(response, object : TypeReference<JsonNode>() {})
+        val results: JsonNode = result.get("products")
 
         it("filters out products that are not reduced") {
-            assertEquals(4, results.size)
+            assertEquals(4, results.size())
             assertFalse {
                 results.any {
                     it.get("productId").textValue() == "id-2"
@@ -86,23 +88,23 @@ class HomeControllerSpec : Spek({
 
     describe("/price-reduction accepts labelType") {
         var rsp: String
-        var results: List<JsonNode>
+        var results: JsonNode
 
         it("displays correct ShowWasNow label") {
             rsp = client.toBlocking().retrieve("/price-reduction?labelType=ShowWasNow")
-            results = mapper.readValue(rsp, object : TypeReference<List<JsonNode>>() {})
+            results = mapper.readTree(rsp).get("products")
             assertEquals("Was £100, now £20", results.first().get("priceLabel").textValue())
         }
 
         it("displays correct ShowWasThenNow label") {
             rsp = client.toBlocking().retrieve("/price-reduction?labelType=ShowWasThenNow")
-            results = mapper.readValue(rsp, object : TypeReference<List<JsonNode>>() {})
+            results = mapper.readTree(rsp).get("products")
             assertEquals("Was £100, then £50, now £20", results.first().get("priceLabel").textValue())
         }
 
         it("displays correct ShowPercDscount label") {
             rsp = client.toBlocking().retrieve("/price-reduction?labelType=ShowPercDscount")
-            results = mapper.readValue(rsp, object : TypeReference<List<JsonNode>>() {})
+            results = mapper.readTree(rsp).get("products")
             assertEquals("80% off - now £20", results.first().get("priceLabel").textValue())
         }
     }

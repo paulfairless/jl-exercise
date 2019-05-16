@@ -10,13 +10,15 @@ import java.math.BigDecimal
 class HomeController(private val jlClient: JLApiOperations, private val productMarshaller: ProductMarshaller) {
 
     @Get("/")
-    fun index(labelType: String?): List<Any> {
+    fun index(labelType: String?): Any {
         val products = jlClient.fetchCategory().products.filter {
             it.price.reducedBy > BigDecimal(0)
         }.sortedByDescending { it.price.reducedBy }
 
-        return products.map { it ->
-            productMarshaller.marshall(it, labelType)
-        }
+        return mapOf (
+            "products" to products.map { it ->
+                productMarshaller.marshall(it, labelType)
+            }
+        )
     }
 }
